@@ -58,6 +58,7 @@ struct FeedView: View {
                 .foregroundColor(.green)
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
     
     private var themePicker: some View {
