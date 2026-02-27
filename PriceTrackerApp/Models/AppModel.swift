@@ -22,3 +22,7 @@ enum AppRoute: Hashable {
         }
     }
 }
+
+enum AppEnvironment {
+    static let webSocketURL = URL(string: "wss://ws.postman-echo.com/raw")!
+}
