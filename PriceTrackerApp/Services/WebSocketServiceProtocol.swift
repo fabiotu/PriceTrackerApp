@@ -8,8 +8,8 @@
 import Foundation
 
 protocol WebSocketServiceProtocol: Sendable {
-    var updateStream: AsyncStream<AssetPriceUpdate> { get async }
-    var stateStream: AsyncStream<WebSocketConnectionState> { get async }
+    var updatePriceStream: AsyncStream<AssetPriceUpdate> { get async }
+    var connectionStateStream: AsyncStream<WebSocketConnectionState> { get async }
     
     func connect() async
     func disconnect() async

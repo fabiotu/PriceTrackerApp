@@ -9,8 +9,8 @@ import Foundation
 
 actor MockWebSocketService: WebSocketServiceProtocol {
     
-    let updateStream: AsyncStream<AssetPriceUpdate>
-    let stateStream: AsyncStream<WebSocketConnectionState>
+    let updatePriceStream: AsyncStream<AssetPriceUpdate>
+    let connectionStateStream: AsyncStream<WebSocketConnectionState>
     
     private let updateContinuation: AsyncStream<AssetPriceUpdate>.Continuation
     private let stateContinuation: AsyncStream<WebSocketConnectionState>.Continuation
@@ -20,11 +20,11 @@ actor MockWebSocketService: WebSocketServiceProtocol {
     
     init() {
         let (uStream, uCont) = AsyncStream.makeStream(of: AssetPriceUpdate.self)
-        self.updateStream = uStream
+        self.updatePriceStream = uStream
         self.updateContinuation = uCont
         
         let (sStream, sCont) = AsyncStream.makeStream(of: WebSocketConnectionState.self)
-        self.stateStream = sStream
+        self.connectionStateStream = sStream
         self.stateContinuation = sCont
         
         self.stateContinuation.yield(.disconnected)

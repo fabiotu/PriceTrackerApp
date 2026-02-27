@@ -9,8 +9,8 @@ import Foundation
 
 actor WebSocketService: WebSocketServiceProtocol {
     
-    let updateStream: AsyncStream<AssetPriceUpdate>
-    let stateStream: AsyncStream<WebSocketConnectionState>
+    let updatePriceStream: AsyncStream<AssetPriceUpdate>
+    let connectionStateStream: AsyncStream<WebSocketConnectionState>
     
     private let updateContinuation: AsyncStream<AssetPriceUpdate>.Continuation
     private let stateContinuation: AsyncStream<WebSocketConnectionState>.Continuation
@@ -23,11 +23,11 @@ actor WebSocketService: WebSocketServiceProtocol {
     init(url: URL) {
         self.url = url
         let (uStream, uContinuation) = AsyncStream.makeStream(of: AssetPriceUpdate.self)
-        self.updateStream = uStream
+        self.updatePriceStream = uStream
         self.updateContinuation = uContinuation
         
         let (sStream, sContinuation) = AsyncStream.makeStream(of: WebSocketConnectionState.self)
-        self.stateStream = sStream
+        self.connectionStateStream = sStream
         self.stateContinuation = sContinuation
         
         self.stateContinuation.yield(.disconnected)
