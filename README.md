@@ -36,6 +36,7 @@ This app utilizes a **MVVM + Router** architecture, completely decoupling the UI
 
 ## 🧩🧩 Components diagram
 
+```mermaid
 graph TD
     subgraph UI Layer
         App[PriceTrackerApp] --> FeedView[FeedView]
@@ -65,3 +66,7 @@ graph TD
         URLSession[URLSessionWebSocketTask] <--> Server((Postman Echo Server))
         Service --> URLSession
     end
+```
+
+
+
