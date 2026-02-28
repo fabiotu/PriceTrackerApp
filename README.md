@@ -2,6 +2,13 @@
 
 A highly responsive, real-time iOS application that tracks live asset prices. Built to demonstrate modern Swift architecture, strict concurrency, and unidirectional data flow.
 
+<p align="center">
+    <img width="300" alt="Feed View 1" src="https://github.com/user-attachments/assets/eaae7b33-595b-4f9c-ab19-fa6848760166" />
+    <img width="300" alt="Feed View 2" src="https://github.com/user-attachments/assets/ff6a2117-a5be-4c42-b2ee-f4f679979fed" />
+    <img width="300" alt="Detail View" src="https://github.com/user-attachments/assets/82d95c90-f39b-4c29-b0e6-9ff13686536d" />
+</p>
+
+
 ## 📱 Requirements & Assumptions
 
 * **Minimum iOS Version:** iOS 17.0+
