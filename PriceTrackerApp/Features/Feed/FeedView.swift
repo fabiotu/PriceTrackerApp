@@ -28,25 +28,28 @@ struct FeedView: View {
             .navigationTitle("Live Markets")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack {
-                        Circle()
-                            .fill(viewModel.connectionStatusColor)
-                            .frame(width: 10, height: 10)
-                        Text(viewModel.connectionStatusText)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .fixedSize()
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(viewModel.connectionStatusColor)
+                                .frame(width: 10, height: 10)
+                            
+                            Text(viewModel.connectionStatusText)
+                                .font(.caption.bold())
+                                .foregroundColor(.secondary)
+                                .fixedSize()
+                        }
+
                         Button(viewModel.isFeedActive ? "Stop" : "Start") {
                             viewModel.toggleFeed()
                         }
                         .fontWeight(.bold)
-                        
-                        themePicker
+                        .tint(viewModel.isFeedActive ? .red : .blue)
                     }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    themePicker
                 }
             }
             .navigationDestination(for: AppRoute.self) { route in
