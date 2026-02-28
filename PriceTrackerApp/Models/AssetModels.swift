@@ -32,7 +32,7 @@ struct Asset: Identifiable, Equatable, Sendable {
     let symbol: String
     let price: Double
     let trend: PriceTrend
-    let lastUpdated: Date
+    let lastUpdated: Date // for flashing effect
     
     init(symbol: String, price: Double = 0.0) {
         self.id = symbol

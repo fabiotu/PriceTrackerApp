@@ -9,28 +9,46 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(AssetStore.self) private var store
     @Binding var theme: AppTheme
     
-    let tempSymbols = ["AAPL", "NVDA", "GOOG", "TSLA", "MSFT"]
-    
+    private var viewModel: FeedViewModel { FeedViewModel(store: store) }
+        
     var body: some View {
 
         @Bindable var routerBindable = router
         
         NavigationStack(path: $routerBindable.path) {
-            List(tempSymbols, id: \.self) { symbol in
+            List(viewModel.assets) { asset in
                 Button {
-                    router.navigate(to: .detail(symbol: symbol))
+                    router.navigate(to: .detail(symbol: asset.symbol))
                 } label: {
-                    assetRow(symbol: symbol, price: Double.random(in: 10...1000))
+                    AssetRowView(asset: asset)
                 }
                 .buttonStyle(.plain)
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Live Markets")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    HStack {
+                        Circle()
+                            .fill(viewModel.connectionStatusColor)
+                            .frame(width: 10, height: 10)
+                        Text(viewModel.connectionStatusText)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    themePicker
+                    HStack(spacing: 16) {
+                        Button(viewModel.isFeedActive ? "Stop" : "Start") {
+                            viewModel.toggleFeed()
+                        }
+                        .fontWeight(.bold)
+                        
+                        themePicker
+                    }
                 }
             }
             .navigationDestination(for: AppRoute.self) { route in
@@ -40,25 +58,6 @@ struct FeedView: View {
                 }
             }
         }
-    }
-    
-    private func assetRow(symbol: String, price: Double) -> some View {
-        HStack {
-            Text(symbol)
-                .font(.headline)
-                .fontWeight(.bold)
-            
-            Spacer()
-            
-            Text(String(format: "$%.2f", price))
-                .font(.system(.body, design: .monospaced))
-                .fontWeight(.semibold)
-            
-            Image(systemName: "arrow.up.right.circle.fill")
-                .foregroundColor(.green)
-        }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
     }
     
     private var themePicker: some View {
@@ -77,6 +76,10 @@ struct FeedView: View {
 
 
 #Preview {
-    FeedView(theme: .constant(.system))
-    .environment(AppRouter())
+    let mockService = MockWebSocketService()
+    let mockStore = AssetStore(webSocketService: mockService)
+    
+    return FeedView(theme: .constant(.system))
+        .environment(AppRouter())
+        .environment(mockStore)
 }

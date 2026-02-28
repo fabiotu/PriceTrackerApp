@@ -11,6 +11,11 @@ import SwiftUI
 struct PriceTrackerApp: App {
 
     @State private var router = AppRouter()
+    @State private var store: AssetStore = {
+        //let service = MockWebSocketService()
+        let service = WebSocketService(url: AppEnvironment.webSocketURL)
+        return AssetStore(webSocketService: service)
+    }()
     
     // Store user theme preferences into UserDefaults
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
@@ -19,6 +24,7 @@ struct PriceTrackerApp: App {
         WindowGroup {
             FeedView(theme: $appTheme)
                 .environment(router)
+                .environment(store)
                 .preferredColorScheme(appTheme.colorScheme)
                 .onOpenURL { url in
                     router.handleDeepLink(url)
