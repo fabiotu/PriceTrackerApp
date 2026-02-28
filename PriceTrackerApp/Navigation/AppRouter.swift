@@ -21,9 +21,9 @@ final class AppRouter {
         path.removeLast(path.count)
     }
     
-    // URL example: stocks://symbol/AAPL
+    // URL example: pricetracker://symbol/AAPL
     func handleDeepLink(_ url: URL) {
-        guard url.scheme == "stocks",
+        guard url.scheme == "pricetracker",
               url.host == "symbol",
               let symbol = url.pathComponents.last,
               !symbol.isEmpty else { return }
