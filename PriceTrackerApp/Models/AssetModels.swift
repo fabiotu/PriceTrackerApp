@@ -7,6 +7,21 @@
 
 import Foundation
 
+nonisolated
+enum AssetConstants {
+    static let defaultSymbols = [
+        "AAPL", "NVDA", "GOOG", "TSLA", "AMZN", "MSFT", "META", "NFLX",
+        "AMD", "INTC", "BA", "DIS", "V", "MA", "JPM", "WMT", "T", "VZ",
+        "CSCO", "PEP", "KO", "NKE", "MCD", "SBUX", "IBM"
+    ]
+    
+    static let initialPriceRange: ClosedRange<Double> = 10.0...1000.0
+        
+    static let priceVariance: ClosedRange<Double> = -0.02...0.02
+        
+    static let refreshIntervalSeconds: UInt64 = 2
+}
+
 // without this directive the compiler complains with warning. This way we can use it both from main actor and background threads
 // the compiler thinks that this belongs to the MainActor
 nonisolated

@@ -84,6 +84,7 @@ actor WebSocketService: WebSocketServiceProtocol {
                     print("[WebSocket] Ignored non-JSON message or decode failed.")
                 }
             } catch {
+                print("[WebSocket] Network connection dropped: \(error)")
                 await disconnect()
                 break
             }

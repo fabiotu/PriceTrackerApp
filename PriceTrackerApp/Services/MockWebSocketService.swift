@@ -37,12 +37,12 @@ actor MockWebSocketService: WebSocketServiceProtocol {
         
         mockTask = Task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
+                try? await Task.sleep(for: .seconds(AssetConstants.refreshIntervalSeconds))
                 
-                let randomAssets = ["AAPL", "NVDA", "GOOG", "TSLA", "MSFT"]
+                let randomAssets = AssetConstants.defaultSymbols
                 let randomUpdate = AssetPriceUpdate(
                     symbol: randomAssets.randomElement()!,
-                    price: Double.random(in: 10...1000)
+                    price: Double.random(in: AssetConstants.initialPriceRange)
                 )
                 
                 if !Task.isCancelled {

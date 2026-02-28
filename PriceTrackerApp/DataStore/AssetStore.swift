@@ -11,7 +11,7 @@ import SwiftUI
 @Observable
 final class AssetStore {
     
-    // can be set only internally, avoiding risk of UI changing the state
+    // can be only set internally, avoiding risk of UI changing the state
     private(set) var assets: [Asset] = []
     private(set) var connectionState: WebSocketConnectionState = .disconnected
     // from UI on/off button
@@ -21,21 +21,15 @@ final class AssetStore {
     private let webSocketService: WebSocketServiceProtocol
     private var pingTask: Task<Void, Never>?
     
-    let defaultSymbols = [
-        "AAPL", "NVDA", "GOOG", "TSLA", "AMZN", "MSFT", "META", "NFLX",
-        "AMD", "INTC", "BA", "DIS", "V", "MA", "JPM", "WMT", "T", "VZ",
-        "CSCO", "PEP", "KO", "NKE", "MCD", "SBUX", "IBM"
-    ]
-    
     init(webSocketService: WebSocketServiceProtocol) {
         self.webSocketService = webSocketService
         
-        self.assets = defaultSymbols.map { symbol in
-            Asset(symbol: symbol, price: Double.random(in: 10...1000))
+        self.assets = AssetConstants.defaultSymbols.map { symbol in
+            Asset(symbol: symbol, price: Double.random(in: AssetConstants.initialPriceRange))
         }
 
-        let connectionStateTask = Task { await listenToConnectionState() }
-        let updateTask = Task { await listenToPriceUpdates() }
+        _ = Task { await listenToConnectionState() }
+        _ = Task { await listenToPriceUpdates() }
     }
         
     func toggleFeed() {
@@ -90,17 +84,17 @@ final class AssetStore {
     private func startTimerRequests() async {
         while isFeedActive && !Task.isCancelled {
             // Wait 2 seconds
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(AssetConstants.refreshIntervalSeconds))
             
             guard isFeedActive, !Task.isCancelled else { break }
             
             for asset in assets {
-                let variance = Double.random(in: -0.02...0.02)
+                let variance = Double.random(in: AssetConstants.priceVariance)
                 let newPrice = asset.price + (asset.price * variance)
                 
                 let update = AssetPriceUpdate(symbol: asset.symbol, price: newPrice)
                 
-                // sequencial
+                // sequential
                 //try? await webSocketService.send(update: update)
                 // concurrent
                 Task {
