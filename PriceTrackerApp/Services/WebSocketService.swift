@@ -59,6 +59,7 @@ actor WebSocketService: WebSocketServiceProtocol {
         guard let task = webSocketTask else { return }
         
         let data = try jsonEncoder.encode(update)
+        
         let message = URLSessionWebSocketTask.Message.data(data)
         try await task.send(message)
     }
@@ -68,15 +69,19 @@ actor WebSocketService: WebSocketServiceProtocol {
             do {
                 let message = try await task.receive()
                 
-                switch message {
-                case .data(let data):
-                    try decodeAndYield(data)
-                case .string(let text):
-                    if let data = text.data(using: .utf8) {
+                do {
+                    switch message {
+                    case .data(let data):
                         try decodeAndYield(data)
+                    case .string(let text):
+                        if let data = text.data(using: .utf8) {
+                            try decodeAndYield(data)
+                        }
+                    @unknown default:
+                        break
                     }
-                @unknown default:
-                    break
+                } catch {
+                    print("[WebSocket] Ignored non-JSON message or decode failed.")
                 }
             } catch {
                 await disconnect()

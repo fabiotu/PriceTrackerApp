@@ -24,5 +24,8 @@ enum AppRoute: Hashable {
 }
 
 enum AppEnvironment {
-    static let webSocketURL = URL(string: "wss://ws.postman-echo.com/raw")!
+    // This server from the brief does not work
+    //static let webSocketURL = URL(string: "wss://ws.postman-echo.com/raw")!
+    // This is a public and working server instead
+    static let webSocketURL = URL(string: "wss://echo.websocket.org")!
 }
