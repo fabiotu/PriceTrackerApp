@@ -11,6 +11,7 @@ actor WebSocketService: WebSocketServiceProtocol {
     
     let updatePriceStream: AsyncStream<AssetPriceUpdate>
     let connectionStateStream: AsyncStream<WebSocketConnectionState>
+    private let session = URLSession(configuration: .default)
     
     private let updateContinuation: AsyncStream<AssetPriceUpdate>.Continuation
     private let stateContinuation: AsyncStream<WebSocketConnectionState>.Continuation
@@ -37,7 +38,8 @@ actor WebSocketService: WebSocketServiceProtocol {
         guard webSocketTask == nil else { return }
         
         let request = URLRequest(url: url)
-        webSocketTask = URLSession.shared.webSocketTask(with: request)
+        webSocketTask = session.webSocketTask(with: request)
+        //webSocketTask = URLSession.shared.webSocketTask(with: request)
         webSocketTask?.resume()
         
         stateContinuation.yield(.connected)

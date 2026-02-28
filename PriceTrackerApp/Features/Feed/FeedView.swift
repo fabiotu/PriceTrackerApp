@@ -20,12 +20,9 @@ struct FeedView: View {
         
         NavigationStack(path: $routerBindable.path) {
             List(viewModel.assets) { asset in
-                Button {
+                AssetRowView(asset: asset) {
                     router.navigate(to: .detail(symbol: asset.symbol))
-                } label: {
-                    AssetRowView(asset: asset)
                 }
-                .buttonStyle(.plain)
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Live Markets")
@@ -38,6 +35,7 @@ struct FeedView: View {
                         Text(viewModel.connectionStatusText)
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .fixedSize()
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
