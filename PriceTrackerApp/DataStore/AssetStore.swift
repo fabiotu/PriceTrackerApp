@@ -19,7 +19,7 @@ final class AssetStore {
     
     // for dependency injection, to support mock service necessary in testing
     private let webSocketService: WebSocketServiceProtocol
-    private var activeTasks: [Task<Void, Never>] = []
+    private var pingTask: Task<Void, Never>?
     
     let defaultSymbols = [
         "AAPL", "NVDA", "GOOG", "TSLA", "AMZN", "MSFT", "META", "NFLX",
@@ -33,6 +33,9 @@ final class AssetStore {
         self.assets = defaultSymbols.map { symbol in
             Asset(symbol: symbol, price: Double.random(in: 10...1000))
         }
+
+        let connectionStateTask = Task { await listenToConnectionState() }
+        let updateTask = Task { await listenToPriceUpdates() }
     }
         
     func toggleFeed() {
@@ -48,19 +51,12 @@ final class AssetStore {
         
         Task { await webSocketService.connect() }
         
-        let connectionStateTask = Task { await listenToConnectionState() }
-        let updateTask = Task { await listenToPriceUpdates() }
-        let pingTask = Task { await startTimerRequests() }
-        
-        activeTasks = [connectionStateTask, updateTask, pingTask]
+        pingTask = Task { await startTimerRequests() }
     }
     
     private func stopFeed() {
         isFeedActive = false
-        
-        activeTasks.forEach { $0.cancel() }
-        activeTasks.removeAll()
-        
+        pingTask?.cancel()
         Task { await webSocketService.disconnect() }
     }
         
@@ -104,7 +100,12 @@ final class AssetStore {
                 
                 let update = AssetPriceUpdate(symbol: asset.symbol, price: newPrice)
                 
-                try? await webSocketService.send(update: update)
+                // sequencial
+                //try? await webSocketService.send(update: update)
+                // concurrent
+                Task {
+                    try? await webSocketService.send(update: update)
+                }
             }
         }
     }

@@ -37,7 +37,7 @@ actor MockWebSocketService: WebSocketServiceProtocol {
         
         mockTask = Task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(2))
                 
                 let randomAssets = ["AAPL", "NVDA", "GOOG", "TSLA", "MSFT"]
                 let randomUpdate = AssetPriceUpdate(
@@ -61,7 +61,7 @@ actor MockWebSocketService: WebSocketServiceProtocol {
     
     func send(update: AssetPriceUpdate) async throws {
         // simulate network delay
-        try? await Task.sleep(for: .milliseconds(100))
+        //try? await Task.sleep(for: .milliseconds(100))
         updateContinuation.yield(update)
     }
 }
