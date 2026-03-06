@@ -65,6 +65,7 @@ actor WebSocketService: WebSocketServiceProtocol {
     }
     
     private func listen() async {
+        // reads: "as long as task is not nil, do etc"
         while let task = webSocketTask {
             do {
                 let message = try await task.receive()
@@ -93,6 +94,8 @@ actor WebSocketService: WebSocketServiceProtocol {
     
     private func decodeAndYield(_ data: Data) throws {
         let update = try jsonDecoder.decode(AssetPriceUpdate.self, from: data)
+        // pushes the update value into the pipe.
+        // If someone is currently awaiting the stream, they immediately wake up and receive this value.
         updateContinuation.yield(update)
     }
 }

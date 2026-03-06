@@ -11,7 +11,7 @@ enum AppRoute: Hashable {
     case detail(symbol: String)
 }
 
-	enum AppTheme: String, CaseIterable {
+enum AppTheme: String, CaseIterable {
     case system, light, dark
     
     var colorScheme: ColorScheme? {

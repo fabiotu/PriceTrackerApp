@@ -70,7 +70,7 @@ final class AssetStore {
     
     private func applyUpdate(_ update: AssetPriceUpdate, sort: Bool = true) {
         if let index = assets.firstIndex(where: { $0.symbol == update.symbol }) {
-            assets[index] = assets[index].updating(with: update.price)
+            assets[index].updating(with: update.price)
         }
         if sort {
             sortAssetsByPrice()
@@ -88,6 +88,8 @@ final class AssetStore {
             
             guard isFeedActive, !Task.isCancelled else { break }
             
+            // note: use await withTaskGroup(of: Void.self) { group in
+            // if there are 1000s of assets
             for asset in assets {
                 let variance = Double.random(in: AssetConstants.priceVariance)
                 let newPrice = asset.price + (asset.price * variance)

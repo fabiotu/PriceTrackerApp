@@ -41,13 +41,12 @@ enum PriceTrend: Sendable {
     case flat
 }
 
-// using a struct here ensures allocation on the stack which is super fast and allows SwiftUI to immediately change the UI with new copy of data
 struct Asset: Identifiable, Equatable, Sendable {
     let id: String
     let symbol: String
-    let price: Double
-    let trend: PriceTrend
-    let lastUpdated: Date // for flashing effect
+    var price: Double
+    var trend: PriceTrend
+    var lastUpdated: Date // for flashing effect
     
     init(symbol: String, price: Double = 0.0) {
         self.id = symbol
@@ -64,15 +63,13 @@ struct Asset: Identifiable, Equatable, Sendable {
         self.trend = trend
         self.lastUpdated = lastUpdated
     }
-    
-    func updating(with newPrice: Double) -> Asset {
+
+    mutating func updating(with newPrice: Double) {
         let newTrend: PriceTrend = newPrice > self.price ? .up : (newPrice < self.price ? .down : .flat)
         
-        return Asset(
-            symbol: self.symbol,
-            price: newPrice,
-            trend: newTrend,
-            lastUpdated: Date() // needed later for flashing effect
-        )
+        self.price = newPrice
+        self.trend = newTrend
+        self.lastUpdated = Date()
+        
     }
 }
