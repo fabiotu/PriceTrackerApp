@@ -1,3 +1,7 @@
+# Implementation notes
+This basic app was created in less than 2 days and I used AI-assisted coding tools. Nevertheless, I was always behind the architectural decisions and guided the AI implementation in progressive commits with critical thinking. Many things can obviously be improved and price updating can be more efficient, I am aware of that. The app's brief requested support for only 25 assets so more emphasis was put on the modules communication and getting features done in little time.
+I've definitely learned a lot in the process.
+
 # Real-Time Price Tracker
 
 A highly responsive, real-time iOS application that tracks live asset prices. Built to demonstrate modern Swift architecture, strict concurrency, and unidirectional data flow.
