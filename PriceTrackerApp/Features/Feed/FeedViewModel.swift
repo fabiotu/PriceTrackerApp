@@ -17,7 +17,7 @@ final class FeedViewModel {
         self.store = store
     }
     
-    var assets: [Asset] { store.assets }
+    var assets: [Asset] { store.sortedAssets }
     var isFeedActive: Bool { store.isFeedActive }
     
     var connectionStatusText: String {

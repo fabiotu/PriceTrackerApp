@@ -69,37 +69,3 @@ struct Asset: Identifiable, Sendable {
     }
 }
 
-/*
-struct Asset: Identifiable, Equatable, Sendable {
-    let id: String
-    let symbol: String
-    var price: Double
-    var trend: PriceTrend
-    var lastUpdated: Date // for flashing effect
-    
-    init(symbol: String, price: Double = 0.0) {
-        self.id = symbol
-        self.symbol = symbol
-        self.price = price
-        self.trend = .flat
-        self.lastUpdated = Date()
-    }
-    
-    private init(symbol: String, price: Double, trend: PriceTrend, lastUpdated: Date) {
-        self.id = symbol
-        self.symbol = symbol
-        self.price = price
-        self.trend = trend
-        self.lastUpdated = lastUpdated
-    }
-
-    mutating func updating(with newPrice: Double) {
-        let newTrend: PriceTrend = newPrice > self.price ? .up : (newPrice < self.price ? .down : .flat)
-        
-        self.price = newPrice
-        self.trend = newTrend
-        self.lastUpdated = Date()
-        
-    }
-}
-*/

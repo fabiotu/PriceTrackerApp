@@ -11,8 +11,12 @@ import SwiftUI
 @Observable
 final class AssetStore {
     
+    private(set) var assetMap: [String: Asset] = [:]
+    var sortedAssets: [Asset] {
+            assetMap.values.sorted { $0.state.price > $1.state.price }
+        }
+    
     // can be only set internally, avoiding risk of UI changing the state
-    private(set) var assets: [Asset] = []
     private(set) var connectionState: WebSocketConnectionState = .disconnected
     // from UI on/off button
     var isFeedActive: Bool = false
@@ -24,8 +28,9 @@ final class AssetStore {
     init(webSocketService: WebSocketServiceProtocol) {
         self.webSocketService = webSocketService
         
-        self.assets = AssetConstants.defaultSymbols.map { symbol in
-            Asset(symbol: symbol, price: Double.random(in: AssetConstants.initialPriceRange))
+        AssetConstants.defaultSymbols.forEach { symbol in
+            let initialPrice = Double.random(in: AssetConstants.initialPriceRange)
+            assetMap[symbol] = Asset(symbol: symbol, price: initialPrice)
         }
 
         _ = Task { await listenToConnectionState() }
@@ -69,37 +74,25 @@ final class AssetStore {
     }
     
     private func applyUpdate(_ update: AssetPriceUpdate, sort: Bool = true) {
-        if let index = assets.firstIndex(where: { $0.identity.symbol == update.symbol }) {
-            assets[index].updating(with: update.price)
-        }
-        if sort {
-            sortAssetsByPrice()
-        }
+        assetMap[update.symbol]?.updating(with: update.price)
     }
     
-    private func sortAssetsByPrice() {
-        assets.sort { $0.state.price > $1.state.price }
-    }
+//    private func sortAssetsByPrice() {
+//        assets.sort { $0.state.price > $1.state.price }
+//    }
     
     private func startTimerRequests() async {
         while isFeedActive && !Task.isCancelled {
-            // Wait 2 seconds
             try? await Task.sleep(for: .seconds(AssetConstants.refreshIntervalSeconds))
             
             guard isFeedActive, !Task.isCancelled else { break }
-            
-            // note: use await withTaskGroup(of: Void.self) { group in
-            // if there are 1000s of assets
-            for asset in assets {
-                let variance = Double.random(in: AssetConstants.priceVariance)
-                let newPrice = asset.state.price + (asset.state.price * variance)
-                
-                let update = AssetPriceUpdate(symbol: asset.identity.symbol, price: newPrice)
-                
-                // sequential
-                //try? await webSocketService.send(update: update)
-                // concurrent
-                Task {
+            Task {
+                for asset in assetMap.values {
+                    let variance = Double.random(in: AssetConstants.priceVariance)
+                    let newPrice = asset.state.price + (asset.state.price * variance)
+                    
+                    let update = AssetPriceUpdate(symbol: asset.identity.symbol, price: newPrice)
+                    
                     try? await webSocketService.send(update: update)
                 }
             }
