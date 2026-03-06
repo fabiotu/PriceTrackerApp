@@ -41,6 +41,35 @@ enum PriceTrend: Sendable {
     case flat
 }
 
+
+struct AssetIdentity: Sendable, Hashable {
+    let symbol: String
+}
+
+struct AssetState: Sendable {
+    var price: Double
+    var trend: PriceTrend = .flat
+    var lastUpdated: Date = Date()
+}
+
+struct Asset: Identifiable, Sendable {
+    var id: String { identity.symbol }
+    let identity: AssetIdentity
+    private(set) var state: AssetState
+
+    init(symbol: String, price: Double = 0.0) {
+        self.identity = AssetIdentity(symbol: symbol)
+        self.state = AssetState(price: price)
+    }
+    
+    mutating func updating(with newPrice: Double) {
+        state.trend = newPrice > state.price ? .up : (newPrice < state.price ? .down : .flat)
+        state.price = newPrice
+        state.lastUpdated = Date()
+    }
+}
+
+/*
 struct Asset: Identifiable, Equatable, Sendable {
     let id: String
     let symbol: String
@@ -73,3 +102,4 @@ struct Asset: Identifiable, Equatable, Sendable {
         
     }
 }
+*/

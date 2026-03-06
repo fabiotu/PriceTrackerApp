@@ -69,7 +69,7 @@ final class AssetStore {
     }
     
     private func applyUpdate(_ update: AssetPriceUpdate, sort: Bool = true) {
-        if let index = assets.firstIndex(where: { $0.symbol == update.symbol }) {
+        if let index = assets.firstIndex(where: { $0.identity.symbol == update.symbol }) {
             assets[index].updating(with: update.price)
         }
         if sort {
@@ -78,7 +78,7 @@ final class AssetStore {
     }
     
     private func sortAssetsByPrice() {
-        assets.sort { $0.price > $1.price }
+        assets.sort { $0.state.price > $1.state.price }
     }
     
     private func startTimerRequests() async {
@@ -92,9 +92,9 @@ final class AssetStore {
             // if there are 1000s of assets
             for asset in assets {
                 let variance = Double.random(in: AssetConstants.priceVariance)
-                let newPrice = asset.price + (asset.price * variance)
+                let newPrice = asset.state.price + (asset.state.price * variance)
                 
-                let update = AssetPriceUpdate(symbol: asset.symbol, price: newPrice)
+                let update = AssetPriceUpdate(symbol: asset.identity.symbol, price: newPrice)
                 
                 // sequential
                 //try? await webSocketService.send(update: update)

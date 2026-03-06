@@ -21,7 +21,7 @@ struct FeedView: View {
         NavigationStack(path: $routerBindable.path) {
             List(viewModel.assets) { asset in
                 AssetRowView(asset: asset) {
-                    router.navigate(to: .detail(symbol: asset.symbol))
+                    router.navigate(to: .detail(symbol: asset.identity.symbol))
                 }
             }
             .listStyle(.insetGrouped)

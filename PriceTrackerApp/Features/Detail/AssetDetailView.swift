@@ -19,16 +19,16 @@ struct AssetDetailView: View {
         VStack(spacing: 30) {
             if let asset = viewModel.asset {
                 VStack(spacing: 8) {
-                    Text(asset.symbol)
+                    Text(asset.identity.symbol)
                         .font(.system(size: 60, weight: .black, design: .rounded))
                     
                     HStack {
-                        Text(String(format: "$%.2f", asset.price))
+                        Text(String(format: "$%.2f", asset.state.price))
                             .font(.system(size: 40, weight: .bold, design: .monospaced))
                         
-                        Image(systemName: asset.trend == .up ? "arrow.up" : (asset.trend == .down ? "arrow.down" : "minus"))
+                        Image(systemName: asset.state.trend == .up ? "arrow.up" : (asset.state.trend == .down ? "arrow.down" : "minus"))
                             .font(.title)
-                            .foregroundColor(asset.trend == .up ? .green : (asset.trend == .down ? .red : .gray))
+                            .foregroundColor(asset.state.trend == .up ? .green : (asset.state.trend == .down ? .red : .gray))
                     }
                 }
                 
