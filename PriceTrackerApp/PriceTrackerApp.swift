@@ -22,7 +22,7 @@ struct PriceTrackerApp: App {
     
     var body: some Scene {
         WindowGroup {
-            FeedView(theme: $appTheme)
+            RootView(theme: $appTheme)
                 .environment(router)
                 .environment(store)
                 .preferredColorScheme(appTheme.colorScheme)

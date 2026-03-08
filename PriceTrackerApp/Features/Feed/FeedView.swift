@@ -9,59 +9,66 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(AppRouter.self) private var router
-    @Environment(AssetStore.self) private var store
+    @State private var viewModel: FeedViewModel
     @Binding var theme: AppTheme
-    
-    private var viewModel: FeedViewModel { FeedViewModel(store: store) }
-        
+
+    init(store: AssetStore, theme: Binding<AppTheme>) {
+        _viewModel = State(initialValue: FeedViewModel(store: store))
+        _theme = theme
+    }
+
     var body: some View {
-
-        @Bindable var routerBindable = router
-        
-        NavigationStack(path: $routerBindable.path) {
-            List(viewModel.assets) { asset in
-                AssetRowView(asset: asset) {
-                    router.navigate(to: .detail(symbol: asset.identity.symbol))
-                }
-                .frame(minHeight: 60)
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Live Markets")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 16) {
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(viewModel.connectionStatusColor)
-                                .frame(width: 10, height: 10)
-                            
-                            Text(viewModel.connectionStatusText)
-                                .font(.caption.bold())
-                                .foregroundColor(.secondary)
-                                .fixedSize()
-                        }
-
-                        Button(viewModel.isFeedActive ? "Stop" : "Start") {
-                            viewModel.toggleFeed()
-                        }
-                        .fontWeight(.bold)
-                        .tint(viewModel.isFeedActive ? .red : .blue)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(viewModel.assets) { asset in
+                    AssetRowView(asset: asset) {
+                        router.navigate(to: .detail(symbol: asset.identity.symbol))
                     }
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    themePicker
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 52)
+
+                    Divider()
+                        .padding(.leading, 16)
                 }
             }
-            .navigationDestination(for: AppRoute.self) { route in
-                switch route {
-                case .detail(let symbol):
-                    AssetDetailView(symbol: symbol)
-                }
+            .background(Color(.systemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("Live Markets")
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                connectionToolbarItem
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                themePicker
             }
         }
     }
-    
+
+    private var connectionToolbarItem: some View {
+        HStack(spacing: 16) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(viewModel.connectionStatusColor)
+                    .frame(width: 10, height: 10)
+
+                Text(viewModel.connectionStatusText)
+                    .font(.caption.bold())
+                    .foregroundColor(.secondary)
+                    .fixedSize()
+            }
+
+            Button(viewModel.isFeedActive ? "Stop" : "Start") {
+                viewModel.toggleFeed()
+            }
+            .fontWeight(.bold)
+            .tint(viewModel.isFeedActive ? .red : .blue)
+        }
+    }
+
     private var themePicker: some View {
         Menu {
             Picker("Theme", selection: $theme) {
@@ -76,12 +83,13 @@ struct FeedView: View {
     }
 }
 
-
 #Preview {
     let mockService = MockWebSocketService()
     let mockStore = AssetStore(webSocketService: mockService)
-    
-    return FeedView(theme: .constant(.system))
-        .environment(AppRouter())
-        .environment(mockStore)
+
+    return NavigationStack {
+        FeedView(store: mockStore, theme: .constant(.system))
+    }
+    .environment(AppRouter())
+    .environment(mockStore)
 }

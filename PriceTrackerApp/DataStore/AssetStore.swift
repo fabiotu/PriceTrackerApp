@@ -38,7 +38,7 @@ final class AssetStore {
 
         _ = Task { await listenToConnectionState() }
         _ = Task { await listenToPriceUpdates() }
-        _ = Task { await startRenderLoop() }
+        renderTask = Task { await startRenderLoop() }
     }
         
     func toggleFeed() {
@@ -95,7 +95,6 @@ final class AssetStore {
         pendingPrices.removeAll(keepingCapacity: true)
         // sort once
         sortedAssets = assetMap.values.sorted { $0.state.price > $1.state.price }
-
     }
     
     private func startTimerRequests() async {

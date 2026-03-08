@@ -44,7 +44,6 @@ enum PriceTrend: Sendable {
     case flat
 }
 
-
 struct AssetIdentity: Sendable, Hashable {
     let symbol: String
 }

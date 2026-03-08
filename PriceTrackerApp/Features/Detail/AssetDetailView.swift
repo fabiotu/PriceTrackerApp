@@ -9,10 +9,12 @@ import SwiftUI
 
 struct AssetDetailView: View {
     @Environment(AssetStore.self) private var store
+    @State private var viewModel: AssetDetailViewModel
     let symbol: String
-    
-    private var viewModel: AssetDetailViewModel {
-        AssetDetailViewModel(store: store, symbol: symbol)
+
+    init(store: AssetStore, symbol: String) {
+        _viewModel = State(initialValue: AssetDetailViewModel(store: store, symbol: symbol))
+        self.symbol = symbol
     }
     
     var body: some View {
