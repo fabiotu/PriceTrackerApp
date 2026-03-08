@@ -33,6 +33,11 @@ struct AssetPriceUpdate: Codable, Sendable, Equatable {
     let price: Double
 }
 
+nonisolated
+struct AssetPriceBatch: Codable, Sendable {
+    let updates: [AssetPriceUpdate]
+}
+
 enum WebSocketConnectionState: Sendable {
     case connected
     case disconnected

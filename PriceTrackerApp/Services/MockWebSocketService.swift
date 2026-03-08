@@ -8,60 +8,65 @@
 import Foundation
 
 actor MockWebSocketService: WebSocketServiceProtocol {
-    
-    let updatePriceStream: AsyncStream<AssetPriceUpdate>
+
+    let updatePriceStream: AsyncStream<AssetPriceBatch>
     let connectionStateStream: AsyncStream<WebSocketConnectionState>
-    
-    private let updateContinuation: AsyncStream<AssetPriceUpdate>.Continuation
-    private let stateContinuation: AsyncStream<WebSocketConnectionState>.Continuation
-    
-    private var isConnected = false
-    private var mockTask: Task<Void, Never>?
-    
+
+    private let priceContinuation: AsyncStream<AssetPriceBatch>.Continuation
+    private let statusContinuation: AsyncStream<WebSocketConnectionState>.Continuation
+    private var simulationTask: Task<Void, Never>?
+
+    var symbols: [String] = AssetConstants.defaultSymbols
+    var tickSequence: [AssetPriceBatch] = []
+    var tickInterval: Duration = .seconds(2)
+
     init() {
-        let (uStream, uCont) = AsyncStream.makeStream(of: AssetPriceUpdate.self)
-        self.updatePriceStream = uStream
-        self.updateContinuation = uCont
-        
-        let (sStream, sCont) = AsyncStream.makeStream(of: WebSocketConnectionState.self)
-        self.connectionStateStream = sStream
-        self.stateContinuation = sCont
-        
-        self.stateContinuation.yield(.disconnected)
+        let (priceStream, priceCont) = AsyncStream.makeStream(of: AssetPriceBatch.self)
+        let (statusStream, statusCont) = AsyncStream.makeStream(of: WebSocketConnectionState.self)
+
+        self.updatePriceStream = priceStream
+        self.connectionStateStream = statusStream
+        self.priceContinuation = priceCont
+        self.statusContinuation = statusCont
     }
-    
+
     func connect() async {
-        guard !isConnected else { return }
-        isConnected = true
-        stateContinuation.yield(.connected)
-        
-        mockTask = Task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(AssetConstants.refreshIntervalSeconds))
-                
-                let randomAssets = AssetConstants.defaultSymbols
-                let randomUpdate = AssetPriceUpdate(
-                    symbol: randomAssets.randomElement()!,
-                    price: Double.random(in: AssetConstants.initialPriceRange)
-                )
-                
-                if !Task.isCancelled {
-                    self.updateContinuation.yield(randomUpdate)
-                }
-            }
+        statusContinuation.yield(.connected)
+        simulationTask = Task { await self.simulationLoop() }
+    }
+
+    func disconnect() async {
+        simulationTask?.cancel()
+        simulationTask = nil
+        statusContinuation.yield(.disconnected)
+    }
+
+    func send(batch: AssetPriceBatch) async throws {
+        priceContinuation.yield(batch)
+    }
+
+    private func simulationLoop() async {
+        var index = 0
+        while !Task.isCancelled {
+            try? await Task.sleep(for: tickInterval)
+            guard !Task.isCancelled else { break }
+
+            let batch: AssetPriceBatch = tickSequence.isEmpty
+                ? randomBatch()
+                : tickSequence[index % tickSequence.count]
+
+            priceContinuation.yield(batch)
+            index += 1
         }
     }
-    
-    func disconnect() async {
-        isConnected = false
-        mockTask?.cancel()
-        mockTask = nil
-        stateContinuation.yield(.disconnected)
-    }
-    
-    func send(update: AssetPriceUpdate) async throws {
-        // simulate network delay
-        //try? await Task.sleep(for: .milliseconds(100))
-        updateContinuation.yield(update)
+
+    private func randomBatch() -> AssetPriceBatch {
+        let updates = symbols.map { symbol in
+            AssetPriceUpdate(
+                symbol: symbol,
+                price: Double.random(in: AssetConstants.initialPriceRange)
+            )
+        }
+        return AssetPriceBatch(updates: updates)
     }
 }
