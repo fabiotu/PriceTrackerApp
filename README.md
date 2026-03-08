@@ -24,12 +24,11 @@ This app utilizes a **MVVM + Router** architecture, completely decoupling the UI
 
 1. **Routing Layer (`AppRouter`):** Manages the `NavigationPath` centrally, allowing deep-link interception (`pricetracker://symbol/{symbol}`) without polluting View code.
 2. **UI Layer (SwiftUI Views):** 100% declarative. Views contain no business logic and rely entirely on ViewModels for formatted data.
-3. **Domain Layer (`AssetStore` / ViewModels):** An `@Observable @MainActor` store acts as the single source of truth. It manages the background tasks and ping loops.
+3. **Domain Layer (`AssetStore` / ViewModels):** An `@Observable @MainActor` store acts as the single source of truth. It manages the background tasks and ping loops. One store reference is shared for both Views, without duplicating connections. Instead of sending multiple requests to the server, we pack all symbol prices for which we need echo into one combiend json payload and send/receive only once. Being the exact receive timings and delays unknown, we commit updates to a dictionary and generate the correspondent sorted array at regular intervals (not at each single symbol price update) so the re-rendering triggered for SwiftUI is controllable.
 4. **Service Layer (`WebSocketService`):** An `actor` that safely encapsulates the `URLSessionWebSocketTask`. It guarantees mutually exclusive access to network state and bridges data to the UI using `AsyncStream`.
 
 ## ⚡️ Key Tradeoffs & Decisions
 
-* **Immutable Structs vs. Mutable Classes:** Instead of mutating prices on `@Observable` class references, the `Asset` model is an immutable `struct`. When a price updates, a brand new struct is generated. **Tradeoff:** Slightly more CPU allocations. **Benefit:** Bypasses ARC overhead, completely eliminates data races, and allows SwiftUI's diffing engine to animate list reordering flawlessly.
 * **AsyncStream vs. Callbacks/Combine:** We used `AsyncStream` to bridge the background Actor to the MainActor Store. **Tradeoff:** Requires careful `Task` lifecycle management to prevent memory leaks. **Benefit:** Native full-duplex communication without the heavy dependency of the Combine framework, adhering strictly to Swift 6 Concurrency rules.
 * **Client-Side Ping Loop:** The server given in the brief didn't work. **Tradeoff:** Used a public working websocket server.
 
