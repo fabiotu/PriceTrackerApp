@@ -19,6 +19,6 @@ final class AssetDetailViewModel {
     }
     
     var asset: Asset? {
-        store.assetMap[symbol]
+        store.sortedAssets.first { $0.identity.symbol == symbol }
     }
 }

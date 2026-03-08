@@ -11,10 +11,12 @@ import SwiftUI
 @Observable
 final class AssetStore {
     
-    private(set) var assetMap: [String: Asset] = [:]
-    var sortedAssets: [Asset] {
-            assetMap.values.sorted { $0.state.price > $1.state.price }
-        }
+    private var assetMap: [String: Asset] = [:]
+    private(set) var sortedAssets: [Asset] = []
+    
+    // Staging buffer — plain dict, not tracked by @Observable
+    // SwiftUI never sees mutations here
+    private var pendingPrices: [String: Double] = [:]
     
     // can be only set internally, avoiding risk of UI changing the state
     private(set) var connectionState: WebSocketConnectionState = .disconnected
@@ -24,6 +26,7 @@ final class AssetStore {
     // for dependency injection, to support mock service necessary in testing
     private let webSocketService: WebSocketServiceProtocol
     private var pingTask: Task<Void, Never>?
+    private var renderTask: Task<Void, Never>?
     
     init(webSocketService: WebSocketServiceProtocol) {
         self.webSocketService = webSocketService
@@ -35,6 +38,7 @@ final class AssetStore {
 
         _ = Task { await listenToConnectionState() }
         _ = Task { await listenToPriceUpdates() }
+        _ = Task { await startRenderLoop() }
     }
         
     func toggleFeed() {
@@ -69,17 +73,30 @@ final class AssetStore {
     private func listenToPriceUpdates() async {
         for await update in await webSocketService.updatePriceStream {
             guard !Task.isCancelled else { break }
-            applyUpdate(update)
+            pendingPrices[update.symbol] = update.price
         }
     }
     
-    private func applyUpdate(_ update: AssetPriceUpdate, sort: Bool = true) {
-        assetMap[update.symbol]?.updating(with: update.price)
+    // Render Loop (fixed cadence, decoupled from data rate)
+    private func startRenderLoop() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: AssetConstants.uiRefreshInterval)
+            commitPendingUpdates()
+        }
     }
-    
-//    private func sortAssetsByPrice() {
-//        assets.sort { $0.state.price > $1.state.price }
-//    }
+
+    private func commitPendingUpdates() {
+        guard !pendingPrices.isEmpty else { return }
+
+        for symbol in pendingPrices.keys {
+            assetMap[symbol]?.updating(with: pendingPrices[symbol]!)
+        }
+
+        pendingPrices.removeAll(keepingCapacity: true)
+        // sort once
+        sortedAssets = assetMap.values.sorted { $0.state.price > $1.state.price }
+
+    }
     
     private func startTimerRequests() async {
         while isFeedActive && !Task.isCancelled {

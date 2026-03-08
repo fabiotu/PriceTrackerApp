@@ -20,6 +20,9 @@ enum AssetConstants {
     static let priceVariance: ClosedRange<Double> = -0.02...0.02
         
     static let refreshIntervalSeconds: UInt64 = 2
+    
+    static let uiRefreshInterval: Duration = .milliseconds(2000)
+
 }
 
 // without this directive the compiler complains with warning. This way we can use it both from main actor and background threads
