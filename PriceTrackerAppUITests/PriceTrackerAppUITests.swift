@@ -16,7 +16,6 @@ final class PriceTrackerUITests: XCTestCase {
         
         XCTAssertTrue(app.navigationBars["Live Markets"].exists)
         
-        // The feed is a ScrollView + LazyVStack (not a List), so query rows by accessibility identifier
         let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'assetRow_'")).firstMatch
         XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()

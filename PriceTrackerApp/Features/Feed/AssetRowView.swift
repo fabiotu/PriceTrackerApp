@@ -28,7 +28,6 @@ struct AssetRowView: View {
             .padding(.horizontal, 16)
             .frame(minHeight: 52)
             .contentShape(Rectangle())
-            // .listRowBackground only applies inside a List; the feed is a LazyVStack, so flash via .background
             .background(flashColor)
         }
         .buttonStyle(.plain)
