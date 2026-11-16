@@ -14,9 +14,11 @@ A highly responsive, real-time iOS application that tracks live asset prices. Bu
 
 ## 📱 Requirements & Assumptions
 
-* **Minimum iOS Version:** iOS 17.0+
-* **Xcode:** 16.0+ (Swift 6 Language Mode)
-* **Assumption:** This project relies heavily on the `Observation` framework (`@Observable`), `AsyncStream`, and Swift 6 `Actor` isolation. These APIs mandate a minimum target of iOS 17.
+* **Minimum iOS Version:** iOS 17.0+ (deployment target `17.0`)
+* **Xcode:** 26+ (Swift 6.2 toolchain)
+* **Language mode:** Swift 6 (`SWIFT_VERSION = 6.0`, complete strict concurrency checking — builds with zero warnings)
+* **Default actor isolation:** `MainActor` (Swift 6.2 `SWIFT_DEFAULT_ACTOR_ISOLATION`), with pure value-type models explicitly marked `nonisolated` so they can be used from any actor.
+* **Assumption:** This project relies on the `Observation` framework (`@Observable`), `AsyncStream`, and actor isolation. `@Observable` mandates a minimum target of iOS 17.
 
 ## 🏗 Architecture
 
@@ -24,11 +26,12 @@ This app utilizes a **MVVM + Router** architecture, completely decoupling the UI
 
 1. **Routing Layer (`AppRouter`):** Manages the `NavigationPath` centrally, allowing deep-link interception (`pricetracker://symbol/{symbol}`) without polluting View code.
 2. **UI Layer (SwiftUI Views):** 100% declarative. Views contain no business logic and rely entirely on ViewModels for formatted data.
-3. **Domain Layer (`AssetStore` / ViewModels):** An `@Observable @MainActor` store acts as the single source of truth. It manages the background tasks and ping loops. One store reference is shared for both Views, without duplicating connections. Instead of sending multiple requests to the server, we pack all symbol prices for which we need echo into one combiend json payload and send/receive only once. Being the exact receive timings and delays unknown, we commit updates to a dictionary and generate the correspondent sorted array at regular intervals (not at each single symbol price update) so the re-rendering triggered for SwiftUI is controllable.
+3. **Domain Layer (`AssetStore` / ViewModels):** An `@Observable @MainActor` store acts as the single source of truth. It manages the background tasks and ping loops. One store reference is shared for both Views, without duplicating connections. Instead of sending multiple requests to the server, we pack all symbol prices for which we need echo into one combined JSON payload and send/receive only once. Being the exact receive timings and delays unknown, we commit updates to a dictionary and generate the correspondent sorted array at regular intervals (not at each single symbol price update) so the re-rendering triggered for SwiftUI is controllable.
 4. **Service Layer (`WebSocketService`):** An `actor` that safely encapsulates the `URLSessionWebSocketTask`. It guarantees mutually exclusive access to network state and bridges data to the UI using `AsyncStream`.
 
 ## ⚡️ Key Tradeoffs & Decisions
 
+* **Value-type models vs. Mutable Classes:** Instead of mutating prices on `@Observable` class references, `Asset` is a `Sendable` `struct` split into a stable `identity` and a mutable `state` (updated in place via a `mutating` method). **Benefit:** value semantics eliminate shared mutable state and data races, and keep SwiftUI diffing cheap.
 * **AsyncStream vs. Callbacks/Combine:** We used `AsyncStream` to bridge the background Actor to the MainActor Store. **Tradeoff:** Requires careful `Task` lifecycle management to prevent memory leaks. **Benefit:** Native full-duplex communication without the heavy dependency of the Combine framework, adhering strictly to Swift 6 Concurrency rules.
 * **Client-Side Ping Loop:** The server given in the brief didn't work. **Tradeoff:** Used a public working websocket server.
 
@@ -36,12 +39,19 @@ This app utilizes a **MVVM + Router** architecture, completely decoupling the UI
 
 * Live full-duplex WebSocket integration.
 * Dynamic sorting (highest prices float to the top).
-* 1-second UI flash animations for price trends (Green = Up, Red = Down).
+* 1-second row flash animations for price trends (Green = Up, Red = Down).
 * Robust error handling (survives bad JSON and dropped TCP sockets).
 * Full Dark/Light mode support.
 * Deep Linking support (`pricetracker://symbol/AAPL`).
-* Unit and UI tests
+* Unit tests with **Swift Testing** (`@Suite`, `@Test`, parameterized arguments, `#expect`) and an XCUITest navigation flow
+* VoiceOver support on feed rows (combined label, price/trend value, hint)
 
+
+## 🧪 Running the tests
+
+```bash
+xcodebuild test -project PriceTrackerApp.xcodeproj -scheme PriceTrackerApp -destination 'platform=iOS Simulator,name=iPhone 17'
+```
 
 ## 🧩🧩 Components diagram
 
@@ -68,7 +78,7 @@ graph TD
 
     subgraph Service Layer Thread-Safe
         Service[WebSocketService <br> actor]
-        Service -- "AsyncStream<AssetPriceUpdate>" --> Store
+        Service -- "AsyncStream<AssetPriceBatch>" --> Store
     end
 
     subgraph Network

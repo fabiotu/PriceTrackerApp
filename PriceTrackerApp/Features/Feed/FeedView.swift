@@ -24,8 +24,6 @@ struct FeedView: View {
                     AssetRowView(asset: asset) {
                         router.navigate(to: .detail(symbol: asset.identity.symbol))
                     }
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 52)
 
                     Divider()
                         .padding(.leading, 16)

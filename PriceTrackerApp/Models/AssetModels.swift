@@ -38,27 +38,32 @@ struct AssetPriceBatch: Codable, Sendable {
     let updates: [AssetPriceUpdate]
 }
 
+nonisolated
 enum WebSocketConnectionState: Sendable {
     case connected
     case disconnected
 }
 
+nonisolated
 enum PriceTrend: Sendable {
     case up
     case down
     case flat
 }
 
+nonisolated
 struct AssetIdentity: Sendable, Hashable {
     let symbol: String
 }
 
+nonisolated
 struct AssetState: Sendable {
     var price: Double
     var trend: PriceTrend = .flat
     var lastUpdated: Date = Date()
 }
 
+nonisolated
 struct Asset: Identifiable, Sendable {
     var id: String { identity.symbol }
     let identity: AssetIdentity

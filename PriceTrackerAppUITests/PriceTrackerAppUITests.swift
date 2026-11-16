@@ -7,6 +7,7 @@
 
 import XCTest
 
+@MainActor
 final class PriceTrackerUITests: XCTestCase {
     
     func testFeedToDetailNavigation() throws {
@@ -15,13 +16,14 @@ final class PriceTrackerUITests: XCTestCase {
         
         XCTAssertTrue(app.navigationBars["Live Markets"].exists)
         
-        let firstRow = app.collectionViews.buttons.firstMatch
+        // The feed is a ScrollView + LazyVStack (not a List), so query rows by accessibility identifier
+        let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'assetRow_'")).firstMatch
         XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
         
-        XCTAssertTrue(app.navigationBars["Details"].exists)
+        XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 3))
         
         app.navigationBars.buttons.firstMatch.tap()
-        XCTAssertTrue(app.navigationBars["Live Markets"].exists)
+        XCTAssertTrue(app.navigationBars["Live Markets"].waitForExistence(timeout: 3))
     }
 }

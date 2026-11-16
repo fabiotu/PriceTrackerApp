@@ -25,10 +25,19 @@ struct AssetRowView: View {
                     .foregroundColor(asset.state.trend == .up ? .green : (asset.state.trend == .down ? .red : .gray))
             }
             .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 52)
             .contentShape(Rectangle())
+            // .listRowBackground only applies inside a List; the feed is a LazyVStack, so flash via .background
+            .background(flashColor)
         }
         .buttonStyle(.plain)
-        .listRowBackground(flashColor)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(asset.identity.symbol)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint("Shows price details")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier("assetRow_\(asset.identity.symbol)")
         .onChange(of: asset.state.lastUpdated) { _, _ in
             guard asset.state.trend != .flat else { return }
             
@@ -40,6 +49,15 @@ struct AssetRowView: View {
                     flashColor = .clear
                 }
             }
+        }
+    }
+
+    private var accessibilityValue: String {
+        let price = String(format: "%.2f dollars", asset.state.price)
+        switch asset.state.trend {
+        case .up: return "\(price), trending up"
+        case .down: return "\(price), trending down"
+        case .flat: return price
         }
     }
 }
